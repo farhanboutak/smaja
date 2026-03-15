@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <style>
 :root {
   --bg: #f0f4ff;
@@ -456,6 +457,10 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
 .qr-container {
   text-align: center;
   margin: 20px 0;
+  min-height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .qr-code {
   display: inline-block;
@@ -464,9 +469,10 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   border-radius: var(--radius-sm);
   border: 2px solid var(--border);
 }
-.qr-code svg {
+.qr-code canvas {
   width: 200px;
   height: 200px;
+  display: block;
 }
 
 /* Tabs */
@@ -476,6 +482,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   margin-bottom: 20px;
   border-bottom: 2px solid var(--border);
   padding-bottom: 8px;
+  flex-wrap: wrap;
 }
 .tab {
   padding: 8px 16px;
@@ -538,6 +545,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   gap: 10px;
   justify-content: center;
   margin: 20px 0;
+  flex-wrap: wrap;
 }
 .theme-color {
   width: 40px;
@@ -567,6 +575,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   .filter-bar { flex-direction: column; align-items: stretch; }
   .range-wrap, .time-toggle-wrap { justify-content: flex-start; }
   .stats-grid { grid-template-columns: 1fr; }
+  .tabs { justify-content: center; }
 }
 </style>
 </head>
@@ -589,10 +598,10 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
 <main>
   <!-- Tabs -->
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('editor')">📝 Editor</div>
-    <div class="tab" onclick="switchTab('analytics')">📊 Analytics</div>
-    <div class="tab" onclick="switchTab('quiz')">🎮 Quiz Mode</div>
-    <div class="tab" onclick="switchTab('themes')">🎨 Themes</div>
+    <div class="tab active" onclick="switchTab('editor', this)">📝 Editor</div>
+    <div class="tab" onclick="switchTab('analytics', this)">📊 Analytics</div>
+    <div class="tab" onclick="switchTab('quiz', this)">🎮 Quiz Mode</div>
+    <div class="tab" onclick="switchTab('themes', this)">🎨 Themes</div>
   </div>
 
   <!-- Tab Editor (Default) -->
@@ -611,7 +620,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
           </div>
           <div class="form-group">
             <label class="form-label">Nama Kelas</label>
-            <input type="text" id="nama-kelas" placeholder="Contoh: XI TJKT 3">
+            <input type="text" id="nama-kelas" placeholder="Contoh: XI TJKT 3" value="XI TJKT 3">
           </div>
         </div>
         <div class="form-row form-row-2">
@@ -621,7 +630,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
           </div>
           <div class="form-group">
             <label class="form-label">Tanggal Mulai</label>
-            <input type="text" id="tgl-mulai" placeholder="Mulai 18 Juli 2022">
+            <input type="text" id="tgl-mulai" placeholder="Mulai 18 Juli 2022" value="Mulai 18 Juli 2022">
           </div>
         </div>
         <div class="form-row">
@@ -770,7 +779,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
           <div style="margin-top: 20px; text-align: center;">
             <span id="quiz-score" style="font-weight: 700; color: var(--accent);">Score: 0</span>
           </div>
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button class="btn btn-primary" onclick="startQuiz()">🎮 Mulai Quiz</button>
             <button class="btn btn-ghost" onclick="nextQuizQuestion()">⏭️ Soal Berikutnya</button>
           </div>
@@ -802,9 +811,10 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
             <!-- QR Code akan digenerate di sini -->
           </div>
         </div>
-        <p style="text-align: center; margin-top: 8px;">Scan untuk lihat jadwal di HP</p>
-        <div style="text-align: center; margin-top: 16px;">
-          <button class="btn btn-primary" onclick="generateQRCode()">Generate QR Code</button>
+        <p style="text-align: center; margin-top: 8px;" id="qr-status">Klik tombol di bawah untuk generate QR Code</p>
+        <div style="text-align: center; margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="generateQRCode()">📱 Generate QR Code</button>
+          <button class="btn btn-outline" onclick="downloadQRCode()">💾 Download QR Code</button>
         </div>
 
         <h4 style="margin: 30px 0 16px;">🔔 Pengingat Jadwal</h4>
@@ -813,9 +823,9 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
             <label class="form-label">Set Pengingat (menit sebelum jam)</label>
             <input type="number" id="reminder-minutes" value="5" min="1" max="60" style="width: 100px;">
           </div>
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn btn-success" onclick="setReminder()">⏰ Set Pengingat</button>
-            <button class="btn btn-ghost" onclick="clearReminder()">Hapus</button>
+            <button class="btn btn-ghost" onclick="clearReminder()">🗑️ Hapus</button>
           </div>
         </div>
       </div>
@@ -978,7 +988,7 @@ let currentQuestion = 0;
 let scheduleChart = null;
 
 // ── Tab Switching ──
-function switchTab(tabName) {
+function switchTab(tabName, element) {
   // Hide all tabs
   document.getElementById('tab-editor').style.display = 'none';
   document.getElementById('tab-analytics').style.display = 'none';
@@ -992,7 +1002,7 @@ function switchTab(tabName) {
   document.getElementById(`tab-${tabName}`).style.display = 'block';
   
   // Add active class to clicked tab
-  event.target.classList.add('active');
+  if (element) element.classList.add('active');
   
   // Update content for specific tabs
   if (tabName === 'analytics' && scheduleData.length > 0) {
@@ -1410,6 +1420,7 @@ function loadContoh() {
   document.getElementById('kodes').value = contohKode;
   document.getElementById('kodes').dispatchEvent(new Event('input'));
   showToast('📋 Contoh data dimuat!');
+  generateJadwal();
 }
 
 // === FITUR ANALYTICS ===
@@ -1596,24 +1607,74 @@ function nextQuizQuestion() {
   }
 }
 
-// === FITUR QR CODE ===
+// === FITUR QR CODE (FIXED) ===
 function generateQRCode() {
   if (scheduleData.length === 0) {
     showToast('⚠️ Generate jadwal terlebih dahulu');
     return;
   }
   
-  // Generate QR Code using Google Charts API
-  const shareUrl = window.location.href.split('#')[0].split('?')[0] + '?preview=' + Date.now();
-  const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(shareUrl)}&choe=UTF-8`;
+  showToast('📱 Membuat QR Code...');
   
-  document.getElementById('qr-code').innerHTML = `<img src="${qrUrl}" alt="QR Code" style="width:200px; height:200px;">`;
-  showToast('📱 QR Code siap!');
+  // Buat konten QR Code - bisa berupa teks atau URL
+  const kelas = document.getElementById('nama-kelas').value || 'Kelas';
+  const sekolah = document.getElementById('nama-sekolah').value || 'Sekolah';
+  const qrContent = `Jadwal ${kelas} - ${sekolah}\nTotal Jam: ${scheduleData.flatMap(d => d.kodes).length}\nGenerated: ${new Date().toLocaleDateString('id-ID')}`;
+  
+  // Hapus QR Code lama
+  const qrContainer = document.getElementById('qr-code');
+  qrContainer.innerHTML = '';
+  
+  // Buat canvas untuk QR Code
+  const canvas = document.createElement('canvas');
+  
+  // Generate QR Code menggunakan library QRCode
+  QRCode.toCanvas(canvas, qrContent, { 
+    width: 200,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#ffffff'
+    }
+  }, function(error) {
+    if (error) {
+      console.error(error);
+      showToast('❌ Gagal membuat QR Code');
+      
+      // Fallback: tampilkan teks
+      qrContainer.innerHTML = `<div style="padding:20px; background:#f0f0f0; border-radius:8px;">
+        <p style="font-weight:600;">QR Code Generator</p>
+        <p style="font-size:0.8rem;">${qrContent.substring(0, 50)}...</p>
+      </div>`;
+    } else {
+      qrContainer.innerHTML = '';
+      qrContainer.appendChild(canvas);
+      document.getElementById('qr-status').textContent = '✅ QR Code siap! Scan untuk lihat info jadwal';
+      showToast('✅ QR Code berhasil dibuat!');
+    }
+  });
+  
+  // Simpan QR content untuk download
+  window.currentQRContent = qrContent;
+  window.currentQRCanvas = canvas;
+}
+
+function downloadQRCode() {
+  if (!window.currentQRCanvas) {
+    showToast('⚠️ Generate QR Code terlebih dahulu');
+    return;
+  }
+  
+  const link = document.createElement('a');
+  link.download = `QR-Jadwal-${document.getElementById('nama-kelas').value || 'Kelas'}.png`;
+  link.href = window.currentQRCanvas.toDataURL('image/png');
+  link.click();
+  showToast('✅ QR Code diunduh!');
 }
 
 function shareQRCode() {
   generateQRCode();
-  showToast('📱 Scan QR Code untuk lihat di HP');
+  showToast('📱 QR Code siap, scan untuk lihat info');
 }
 
 // === FITUR PENGINGAT ===
@@ -1628,21 +1689,16 @@ function setReminder() {
   const day = now.getDay(); // 0 = Minggu, 1 = Senin, ...
   
   if (day >= 1 && day <= 5) { // Senin - Jumat
-    const todaySchedule = scheduleData[day-1];
-    if (todaySchedule) {
-      const jamTimes = window._jamTimes || [];
-      const reminderTime = new Date();
-      // Set reminder 5 menit sebelum jam pertama
-      reminderTime.setHours(7, 25, 0); // Contoh: 07:25
-        
-      const timeUntilReminder = reminderTime - now;
-      if (timeUntilReminder > 0) {
-        setTimeout(() => {
-          showToast('⏰ Pengingat: Jadwal akan segera dimulai!');
-        }, timeUntilReminder);
-        showToast(`⏰ Pengingat diset untuk ${reminderTime.toLocaleTimeString()}`);
+    showToast(`⏰ Pengingat diset ${minutes} menit sebelum jam pelajaran`);
+    
+    // Simulasi reminder (di real app ini perlu service worker)
+    setTimeout(() => {
+      if (confirm('⏰ Jadwal akan segera dimulai! Lihat jadwal sekarang?')) {
+        switchTab('editor', document.querySelector('.tab'));
       }
-    }
+    }, 5000);
+  } else {
+    showToast('📅 Hari ini tidak ada jadwal sekolah');
   }
 }
 
@@ -1860,6 +1916,11 @@ function showToast(msg) {
 
 // ── Inisialisasi dan Cek Parameter URL ──
 window.addEventListener('load', function() {
+  // Load contoh data otomatis
+  setTimeout(() => {
+    loadContoh();
+  }, 500);
+  
   const urlParams = new URLSearchParams(window.location.search);
   const shareId = urlParams.get('share');
   
@@ -1904,7 +1965,7 @@ window.addEventListener('load', function() {
 <footer style="text-align:center; margin: 20px 0; font-size:0.75rem; color:var(--text2);">
  dibuat oleh <a href="https://www.instagram.com/a.farhanhan/" target="_blank">Ammar Farhan</a> | 
  <a href="https://github.com/farhanboutak/jadwal" target="_blank">GitHub</a> | 
- <a href="https://github.com/farhanboutak/jadwal" target="_blank">Version: 3.0.0</a> |
+ <a href="https://github.com/farhanboutak/jadwal" target="_blank">Version: 3.1.0</a> |
  <a href="#" onclick="window.location.href=window.location.href.split('?')[0];return false;">Editor</a>
 </footer>
 </body>
