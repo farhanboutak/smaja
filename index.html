@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generator Jadwal Pelajaran – Admin Dashboard</title>
+<title>Generator Jadwal Pelajaran – Aplikasi Utama</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
@@ -38,9 +38,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
 
-/* Login Page */
+/* Login Page - Hidden by default */
 #login-page {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -137,6 +137,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); colo
   color: var(--accent);
   text-decoration: none;
   font-weight: 600;
+  cursor: pointer;
 }
 
 /* Header */
@@ -843,7 +844,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
 </head>
 <body>
 
-<!-- Login Page -->
+<!-- Login Page (Hidden by default) -->
 <div id="login-page">
   <div class="login-card">
     <div class="login-logo">
@@ -869,8 +870,8 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   </div>
 </div>
 
-<!-- Main App (Hidden by default) -->
-<div id="main-app" style="display: none;">
+<!-- Main App (Visible by default) -->
+<div id="main-app" style="display: block;">
   <header>
     <div class="logo">
       <div class="logo-icon">🤖</div>
@@ -882,7 +883,8 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
     <div class="header-actions">
       <button class="btn-icon" id="theme-toggle" title="Dark mode">🌙</button>
       <button class="btn-icon" onclick="window.print()" title="Cetak">🖨️</button>
-      <button class="btn-icon" onclick="showAdminLogin()" title="Admin Panel">👤</button>
+      <!-- Tombol Admin di samping versi -->
+      <button class="btn-icon" onclick="showAdminLogin()" title="Admin Panel">👤 Admin</button>
     </div>
   </header>
 
@@ -1620,6 +1622,7 @@ function login() {
     // Sembunyikan login, tampilkan admin dashboard
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('admin-dashboard').style.display = 'block';
+    document.getElementById('main-app').style.display = 'none';
     
     // Update admin dashboard
     updateAdminDashboard();
@@ -1641,13 +1644,15 @@ function logout() {
   }
   currentUser = null;
   document.getElementById('admin-dashboard').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('login-page').style.display = 'none';
   showToast('👋 Berhasil logout');
 }
 
 function showAdminLogin() {
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('admin-dashboard').style.display = 'none';
 }
 
 function showMainApp() {
@@ -2951,9 +2956,8 @@ function loadPreviewFromId(id) {
     return;
   }
   
-  document.querySelector('header').style.display = 'none';
-  document.querySelector('main').style.display = 'none';
-  document.querySelector('footer').style.display = 'none';
+  document.getElementById('header').style.display = 'none';
+  document.getElementById('main').style.display = 'none';
   
   const previewPage = document.getElementById('preview-page');
   previewPage.style.display = 'block';
@@ -3080,9 +3084,9 @@ window.addEventListener('load', function() {
   if (shareId) {
     loadPreviewFromId(shareId);
   } else {
-    // Show login page by default
-    document.getElementById('login-page').style.display = 'flex';
-    document.getElementById('main-app').style.display = 'none';
+    // Show main app by default, login page hidden
+    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('login-page').style.display = 'none';
     document.getElementById('admin-dashboard').style.display = 'none';
     
     // Add initial activity logs
