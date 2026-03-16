@@ -766,6 +766,76 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   color: var(--accent);
 }
 
+/* Time Settings */
+.time-settings {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.time-settings h4 {
+  margin-bottom: 15px;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.time-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.time-setting-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.time-setting-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text2);
+  display: block;
+  margin-bottom: 5px;
+}
+.time-setting-item input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+}
+.time-presets {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+  padding: 15px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.time-preset-btn {
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.3s;
+}
+.time-preset-btn:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+.time-preset-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
 /* Backup List */
 .backup-item {
   display: flex;
@@ -881,6 +951,8 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
     </div>
     <div class="header-actions">
       <button class="btn-icon" id="theme-toggle" title="Dark mode">🌙</button>
+      <button class="btn-icon" onclick="window.print()" title="Cetak">🖨️</button>
+      <button class="btn-icon" onclick="showAdminLogin()" title="Admin Panel">👤 Admin</button>
     </div>
   </header>
 
@@ -1139,6 +1211,7 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
         <li><a href="#" onclick="showAdminSection('users', this)"><i>👥</i> Manajemen User</a></li>
         <li><a href="#" onclick="showAdminSection('jadwal', this)"><i>📅</i> Semua Jadwal</a></li>
         <li><a href="#" onclick="showAdminSection('guru', this)"><i>👨‍🏫</i> Data Guru</a></li>
+        <li><a href="#" onclick="showAdminSection('jam-waktu', this)"><i>⏰</i> Jam & Waktu</a></li>
         <li><a href="#" onclick="showAdminSection('settings', this)"><i>⚙️</i> Pengaturan</a></li>
         <li><a href="#" onclick="showAdminSection('backup', this)"><i>💾</i> Backup & Restore</a></li>
         <li><a href="#" onclick="showAdminSection('logs', this)"><i>📋</i> Activity Logs</a></li>
@@ -1274,6 +1347,70 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
                 <!-- Guru will be populated here -->
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Jam & Waktu Section -->
+      <div id="admin-jam-waktu-section" style="display: none;">
+        <h2 style="margin-bottom: 20px;">Pengaturan Jam Pelajaran</h2>
+        
+        <div class="time-settings">
+          <h4><i>⏰</i> Default Waktu Jam Pelajaran</h4>
+          <p style="color: var(--text2); margin-bottom: 20px; font-size: 0.85rem;">
+            Atur default waktu untuk setiap jam pelajaran. Pengaturan ini akan digunakan sebagai default saat membuat jadwal baru.
+          </p>
+
+          <div class="time-presets">
+            <span style="font-weight: 600; color: var(--text2);">Preset:</span>
+            <button class="time-preset-btn" onclick="applyTimePreset('sekolah')">🏫 Sekolah Standar</button>
+            <button class="time-preset-btn" onclick="applyTimePreset('pesantren')">🕌 Pesantren</button>
+            <button class="time-preset-btn" onclick="applyTimePreset('karyawan')">💼 Karyawan</button>
+            <button class="time-preset-btn" onclick="applyTimePreset('custom')">✨ Custom</button>
+          </div>
+
+          <div class="time-settings-grid" id="time-settings-grid">
+            <!-- Akan diisi JavaScript -->
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <button class="btn btn-success" onclick="saveTimeSettings()">💾 Simpan Pengaturan Waktu</button>
+            <button class="btn btn-ghost" onclick="resetTimeSettings()">↺ Reset ke Default</button>
+          </div>
+        </div>
+
+        <div class="time-settings">
+          <h4><i>📅</i> Jumlah Jam per Hari</h4>
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label">Default Jam Senin-Kamis</label>
+              <input type="number" id="default-jam-senin-kamis" value="10" min="6" max="15">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Default Jam Jumat</label>
+              <input type="number" id="default-jam-jumat" value="7" min="4" max="12">
+            </div>
+          </div>
+          <p class="form-hint">Pengaturan ini akan mempengaruhi jumlah jam default saat membuat jadwal baru</p>
+        </div>
+
+        <div class="time-settings">
+          <h4><i>⚡</i> Pengaturan Lanjutan</h4>
+          <div class="form-group">
+            <label class="form-label">
+              <input type="checkbox" id="auto-show-time" checked>
+              Otomatis tampilkan waktu saat generate jadwal
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              <input type="checkbox" id="time-24-format" checked>
+              Gunakan format 24 jam
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Durasi per Jam (menit)</label>
+            <input type="number" id="jam-duration" value="45" min="30" max="60" step="5">
           </div>
         </div>
       </div>
@@ -1469,6 +1606,17 @@ textarea::placeholder, input::placeholder { color: var(--text2); opacity: 0.6; }
   </div>
 </div>
 
+<!-- Modal Edit Waktu -->
+<div id="edit-time-modal" class="modal">
+  <div class="modal-content" style="max-width: 500px;">
+    <span class="close-btn" onclick="closeEditTimeModal()">&times;</span>
+    <div class="modal-body">
+      <h3>✏️ Edit Waktu Jam</h3>
+      <div id="edit-time-content"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Halaman Preview -->
 <div id="preview-page" style="display:none;">
   <div style="max-width:1200px; margin:0 auto; padding:20px;">
@@ -1582,6 +1730,27 @@ let activityLogs = [];
 let savedJadwal = [];
 let currentUser = null;
 
+// ================== PENGATURAN WAKTU ==================
+let timeSettings = {
+  jamPerHari: 10,
+  jamPerHariJumat: 7,
+  defaultJamTimes: [
+    '07.30–08.15',
+    '08.15–09.00',
+    '09.00–09.45',
+    '09.45–10.30',
+    '10.45–11.30',
+    '11.30–12.15',
+    '12.15–13.00',
+    '13.00–13.45',
+    '13.45–14.30',
+    '14.30–15.15'
+  ],
+  autoShowTime: true,
+  use24Hour: true,
+  jamDuration: 45
+};
+
 // ================== KONSTANTA ==================
 const HARI = ['Senin','Selasa','Rabu','Kamis','Jumat'];
 let scheduleData = [];
@@ -1600,6 +1769,24 @@ let currentQuestion = 0;
 // Chart instance
 let scheduleChart = null;
 let usageChart = null;
+
+// Load time settings from localStorage
+function loadTimeSettings() {
+  const saved = localStorage.getItem('timeSettings');
+  if (saved) {
+    try {
+      timeSettings = JSON.parse(saved);
+    } catch (e) {
+      console.error('Gagal load time settings:', e);
+    }
+  }
+  defaultJamTimes = timeSettings.defaultJamTimes;
+}
+
+// Save time settings to localStorage
+function saveTimeSettingsToStorage() {
+  localStorage.setItem('timeSettings', JSON.stringify(timeSettings));
+}
 
 // ================== FUNGSI LOGIN ==================
 function login() {
@@ -1627,6 +1814,7 @@ function login() {
     updateJadwalTable();
     updateActivityLogs();
     updateBackupHistory();
+    updateTimeSettingsUI();
     
     showToast(`👋 Selamat datang, ${username}!`);
   } else {
@@ -1664,6 +1852,7 @@ function showAdminSection(section, element) {
   document.getElementById('admin-users-section').style.display = 'none';
   document.getElementById('admin-jadwal-section').style.display = 'none';
   document.getElementById('admin-guru-section').style.display = 'none';
+  document.getElementById('admin-jam-waktu-section').style.display = 'none';
   document.getElementById('admin-settings-section').style.display = 'none';
   document.getElementById('admin-backup-section').style.display = 'none';
   document.getElementById('admin-logs-section').style.display = 'none';
@@ -1682,6 +1871,7 @@ function showAdminSection(section, element) {
   if (section === 'users') updateUsersTable();
   if (section === 'guru') updateGuruTable();
   if (section === 'jadwal') updateJadwalTable();
+  if (section === 'jam-waktu') updateTimeSettingsUI();
   if (section === 'logs') updateActivityLogs();
   if (section === 'backup') updateBackupHistory();
 }
@@ -2056,6 +2246,140 @@ function searchJadwalAdmin() {
   });
 }
 
+// ================== FUNGSI PENGATURAN WAKTU ==================
+function updateTimeSettingsUI() {
+  const grid = document.getElementById('time-settings-grid');
+  grid.innerHTML = '';
+  
+  for (let i = 0; i < 12; i++) {
+    const jamKe = i + 1;
+    const waktu = timeSettings.defaultJamTimes[i] || '';
+    
+    grid.innerHTML += `
+      <div class="time-setting-item">
+        <label>Jam ke-${jamKe}</label>
+        <input type="text" id="time-setting-${jamKe}" value="${waktu}" placeholder="Contoh: 07.30–08.15" onchange="updateTimeSetting(${jamKe}, this.value)">
+        <small style="font-size:0.7rem; color:var(--text2); display:block; margin-top:4px;">
+          ${calculateTimeDuration(waktu)} menit
+        </small>
+      </div>
+    `;
+  }
+  
+  document.getElementById('default-jam-senin-kamis').value = timeSettings.jamPerHari;
+  document.getElementById('default-jam-jumat').value = timeSettings.jamPerHariJumat;
+  document.getElementById('auto-show-time').checked = timeSettings.autoShowTime;
+  document.getElementById('time-24-format').checked = timeSettings.use24Hour;
+  document.getElementById('jam-duration').value = timeSettings.jamDuration;
+}
+
+function calculateTimeDuration(timeStr) {
+  if (!timeStr) return 0;
+  const match = timeStr.match(/(\d{2})\.(\d{2})[–-](\d{2})\.(\d{2})/);
+  if (match) {
+    const startHour = parseInt(match[1]);
+    const startMin = parseInt(match[2]);
+    const endHour = parseInt(match[3]);
+    const endMin = parseInt(match[4]);
+    return (endHour * 60 + endMin) - (startHour * 60 + startMin);
+  }
+  return 0;
+}
+
+function updateTimeSetting(jamKe, value) {
+  while (timeSettings.defaultJamTimes.length < jamKe) {
+    timeSettings.defaultJamTimes.push('');
+  }
+  timeSettings.defaultJamTimes[jamKe - 1] = value;
+}
+
+function saveTimeSettings() {
+  timeSettings.jamPerHari = parseInt(document.getElementById('default-jam-senin-kamis').value) || 10;
+  timeSettings.jamPerHariJumat = parseInt(document.getElementById('default-jam-jumat').value) || 7;
+  timeSettings.autoShowTime = document.getElementById('auto-show-time').checked;
+  timeSettings.use24Hour = document.getElementById('time-24-format').checked;
+  timeSettings.jamDuration = parseInt(document.getElementById('jam-duration').value) || 45;
+  
+  // Update defaultJamTimes dari input
+  for (let i = 0; i < 12; i++) {
+    const input = document.getElementById(`time-setting-${i+1}`);
+    if (input) {
+      timeSettings.defaultJamTimes[i] = input.value;
+    }
+  }
+  
+  saveTimeSettingsToStorage();
+  defaultJamTimes = timeSettings.defaultJamTimes;
+  
+  addActivityLog('Pengaturan Waktu', 'Mengubah pengaturan waktu jam pelajaran');
+  showToast('✅ Pengaturan waktu berhasil disimpan!');
+}
+
+function resetTimeSettings() {
+  if (confirm('Reset semua pengaturan waktu ke default?')) {
+    timeSettings = {
+      jamPerHari: 10,
+      jamPerHariJumat: 7,
+      defaultJamTimes: [
+        '07.30–08.15',
+        '08.15–09.00',
+        '09.00–09.45',
+        '09.45–10.30',
+        '10.45–11.30',
+        '11.30–12.15',
+        '12.15–13.00',
+        '13.00–13.45',
+        '13.45–14.30',
+        '14.30–15.15'
+      ],
+      autoShowTime: true,
+      use24Hour: true,
+      jamDuration: 45
+    };
+    saveTimeSettingsToStorage();
+    defaultJamTimes = timeSettings.defaultJamTimes;
+    updateTimeSettingsUI();
+    showToast('✅ Pengaturan waktu direset ke default');
+  }
+}
+
+function applyTimePreset(preset) {
+  switch(preset) {
+    case 'sekolah':
+      timeSettings.defaultJamTimes = [
+        '07.30–08.15', '08.15–09.00', '09.00–09.45', '09.45–10.30',
+        '10.45–11.30', '11.30–12.15', '12.15–13.00', '13.00–13.45',
+        '13.45–14.30', '14.30–15.15', '15.15–16.00', '16.00–16.45'
+      ];
+      timeSettings.jamDuration = 45;
+      break;
+    case 'pesantren':
+      timeSettings.defaultJamTimes = [
+        '04.30–05.15', '05.15–06.00', '06.30–07.15', '07.15–08.00',
+        '08.00–08.45', '08.45–09.30', '09.45–10.30', '10.30–11.15',
+        '11.15–12.00', '12.30–13.15', '13.15–14.00', '14.00–14.45',
+        '15.00–15.45', '15.45–16.30', '19.30–20.15', '20.15–21.00'
+      ];
+      timeSettings.jamDuration = 45;
+      break;
+    case 'karyawan':
+      timeSettings.defaultJamTimes = [
+        '08.00–09.30', '09.30–11.00', '11.00–12.30',
+        '13.30–15.00', '15.00–16.30', '16.30–18.00'
+      ];
+      timeSettings.jamDuration = 90;
+      break;
+    case 'custom':
+      // Biarkan user mengisi manual
+      break;
+  }
+  
+  document.querySelectorAll('.time-preset-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  updateTimeSettingsUI();
+  showToast(`📋 Preset ${preset} diterapkan`);
+}
+
 // ================== FUNGSI BACKUP ==================
 function createBackup() {
   const backup = {
@@ -2066,6 +2390,7 @@ function createBackup() {
       users,
       kodeGuru,
       savedJadwal,
+      timeSettings,
       settings: {
         appName: document.getElementById('app-name')?.value || 'Jadwal AI Pro',
         maxJam: document.getElementById('max-jam')?.value || 12,
@@ -2107,10 +2432,16 @@ function restoreBackup() {
         if (data.users) users = data.users;
         if (data.kodeGuru) kodeGuru = data.kodeGuru;
         if (data.savedJadwal) savedJadwal = data.savedJadwal;
+        if (data.timeSettings) {
+          timeSettings = data.timeSettings;
+          defaultJamTimes = timeSettings.defaultJamTimes;
+          saveTimeSettingsToStorage();
+        }
         
         addActivityLog('Restore', 'Merestore data dari backup');
         updateUsersTable();
         updateGuruTable();
+        updateTimeSettingsUI();
         showToast('✅ Restore berhasil');
       }
     } catch (error) {
@@ -2240,15 +2571,10 @@ function buildJamConfig() {
   document.getElementById('hint-jam').textContent = n;
   const wrap = document.getElementById('jam-config-wrap');
   wrap.innerHTML = '';
-  const defaults = [
-    '07.30–07.55','07.55–08.20','08.20–08.45','08.45–09.10',
-    '09.10–09.35','09.55–10.20','10.20–10.45','10.45–11.10',
-    '11.10–11.35','11.35–12.00','14.30–15.15','15.15–16.00'
-  ];
-  defaultJamTimes = [];
+  
+  // Gunakan defaultJamTimes dari pengaturan
   for (let i = 0; i < n; i++) {
-    const defaultVal = defaults[i] || '';
-    defaultJamTimes.push(defaultVal);
+    const defaultVal = defaultJamTimes[i] || '';
     wrap.innerHTML += `<div class="jam-item">
       <label>Jam ke-${i+1}</label>
       <input type="text" class="jam-time" id="jt-${i+1}" placeholder="${defaultVal}" value="${defaultVal}">
@@ -2257,6 +2583,9 @@ function buildJamConfig() {
   const chk = document.getElementById('clear-jam-checkbox');
   if (chk && chk.checked) clearAllJamFields(true);
 }
+
+// Load time settings first
+loadTimeSettings();
 buildJamConfig();
 
 function clearAllJamFields(forceClear) {
@@ -2952,8 +3281,7 @@ function loadPreviewFromId(id) {
     return;
   }
   
-  document.getElementById('header').style.display = 'none';
-  document.getElementById('main').style.display = 'none';
+  document.getElementById('main-app').style.display = 'none';
   
   const previewPage = document.getElementById('preview-page');
   previewPage.style.display = 'block';
@@ -3031,7 +3359,7 @@ function showScheduleStats() {
       <p style="font-weight:600; margin-bottom:8px;">📊 Rata-rata per hari:</p>
       <p>Senin-Kamis: ${window._jamPerHari} jam</p>
       <p>Jumat: ${scheduleData[4]?.kodes.length || 0} jam</p>
-      <p style="margin-top:8px;">⚡ Total beban belajar: ${allKodes.length * 45} menit (${(allKodes.length * 45 / 60).toFixed(1)} jam)</p>
+      <p style="margin-top:8px;">⚡ Total beban belajar: ${allKodes.length * timeSettings.jamDuration} menit (${(allKodes.length * timeSettings.jamDuration / 60).toFixed(1)} jam)</p>
     </div>
   `;
   
@@ -3071,6 +3399,11 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
+// ================== MODAL FUNCTIONS ==================
+function closeEditTimeModal() {
+  document.getElementById('edit-time-modal').style.display = 'none';
+}
+
 // ================== INITIALIZATION ==================
 window.addEventListener('load', function() {
   // Check for share ID in URL
@@ -3084,6 +3417,10 @@ window.addEventListener('load', function() {
     document.getElementById('main-app').style.display = 'block';
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('admin-dashboard').style.display = 'none';
+    
+    // Load time settings
+    loadTimeSettings();
+    buildJamConfig();
     
     // Add initial activity logs
     addActivityLog('System', 'Aplikasi dimulai');
